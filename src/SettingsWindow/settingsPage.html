@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel='stylesheet' href="./settingsStyles.css">
+
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/npm/spectrum-colorpicker2/dist/spectrum.min.css">
+</head>
+
+<body>
+    <div class="tab">
+        <button class="tablinks" onclick="openTab(event, 'main')" id="defaultOpen">Основные</button>
+        <button class="tablinks" onclick="openTab(event, 'hotkeys')">Горячие клавиши</button>
+        <button class="tablinks" onclick="openTab(event, 'translationBlock')">Блок перевода</button>
+    </div>
+
+    <div id="main" class="tabcontent">
+        <label for="oAuthToken">OAuth-токен</label>
+        <input id="oAuthToken" type="password" style="justify-self: center;" />
+
+        <label for="forderId">Идентификатор каталога </label>
+        <input id="forderId" type="password" style="justify-self: center;" />
+
+        <label for="sourceLanguage">Исходный язык</label>
+        <select id="sourceLanguage">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+        </select>
+
+        <label for="translationLanguage">Язык перевода</label>
+        <select id="translationLanguage">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+        </select>
+
+        <label for="extraBlockForTranslation">Отдельный блок для перевода</label>
+        <input id="extraBlockForTranslation" type="checkbox" style="justify-self: center;" />
+    </div>
+
+    <div id="hotkeys" class="tabcontent">
+        <label for="hotkeyOpenSettings">Открыть настройки</label>
+        <input id="hotkeyOpenSettings" onkeydown="hotkeyDown(event)" />
+
+        <label for="hotkeyExitApp">Выйти из приложения</label>
+        <input id="hotkeyExitApp" onkeydown="hotkeyDown(event)" />
+
+        <label for="hotkeyTranslate">Перевести выбранную область</label>
+        <input id="hotkeyTranslate" onkeydown="hotkeyDown(event)" />
+
+        <label for="hotkeyOpenCloseRects">Выбрать/Закрыть область захвата</label>
+        <input id="hotkeyOpenCloseRects" onkeydown="hotkeyDown(event)" />
+
+        <label for="hotkeyOpenCloseTranslation">Показать/Скрыть окно перевода</label>
+        <input id="hotkeyOpenCloseTranslation" onkeydown="hotkeyDown(event)" />
+    </div>
+
+    <div id="translationBlock" class="tabcontent">
+
+        <label for="translationColor">Цвет окна</label>
+        <input id="translationColor" />
+
+        <label for="translationFontColor">Цвет шрифта</label>
+        <input id="translationFontColor" />
+
+        <label for="translationFontSize">Размер шрифта</label>
+        <input type="range" min="8" max="20" id="translationFontSize" />
+
+        <label for="translationFontFamily">Шрифт</label>
+        <select id="translationFontFamily">
+            <option>Arial Black</option>
+            <option>Arial </option>
+            <option>Comic Sans MS</option>
+            <option>Courier New</option>
+            <option>Georgia</option>
+            <option>Impact </option>
+            <option>TimesNewRoman</option>
+            <option>Trebuchet MS</option>
+            <option>Verdana </option>
+        </select>
+
+        <div id="translationWindow">
+            Проверочка текста, да-да! <br>
+            «Яндекс» (англ. Yandex) — российская транснациональная компания в отрасли информационных технологий,
+            чьё головное юридическое лицо зарегистрировано в Нидерландах, владеющая одноимённой системой поиска в
+            интернете, интернет-порталом и веб-службами в нескольких странах. Наиболее заметное положение занимает на
+            рынках России, Белоруссии и Казахстана. Также Яндекс является одной из самых быстрорастущих корпораций в
+            России.
+        </div>
+
+    </div>
+
+    <div class="exit">
+        <button onclick="closeWindow()">Отмена</button>
+        <button onclick="saveConfig()">Сохранить</button>
+    </div>
+
+    <script src="./settingsRenderer.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/spectrum-colorpicker2/dist/spectrum.min.js"></script>
+
+    <script>
+        setTimeout(() => {
+            $('#translationColor').spectrum({
+                type: "color",
+                allowEmpty: false,
+                change: (color) => {
+                    $('#translationWindow').css({
+                        'background-color': color.toHslString(),
+                        'outline-color': color.toHexString()
+                    });
+                }
+            });
+            $('#translationFontColor').spectrum({
+                type: "color",
+                allowEmpty: false,
+                change: (color) => {
+                    $('#translationWindow').css('color', color.toHslString());
+                }
+            });
+            $('.sp-replacer').css({ width: 'auto', height: '21px' });
+        }, 10)
+    </script>
+</body>
+
+</html>

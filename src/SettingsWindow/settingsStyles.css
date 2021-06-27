@@ -1,0 +1,82 @@
+body {
+    margin: 0;
+    user-select: none;
+}
+
+.tab {
+    position: relative;
+    display: flex;
+    margin: 20px 40px 0 40px;
+}
+
+.tab .tablinks {
+    background-color: #ededed;
+    border: 1px solid #ccc;
+    border-left: none;
+    border-right: none;
+    outline: none;
+    cursor: pointer;
+    padding: 6px 16px;
+}
+
+.tab .tablinks:first-child {
+    border-left: 1px solid #ccc;
+}
+
+.tab .tablinks:last-child {
+    border-right: 1px solid #ccc;
+}
+
+.tab .tablinks:hover {
+    background-color: #ddd;
+}
+
+.tab .tablinks.active {
+    background-color: white;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-bottom: none;
+    z-index: 1;
+}
+
+.tabcontent {
+    display: none;
+    position: relative;
+    background-color: white;
+    margin: 0px 20px;
+    padding: 20px 20px;
+    outline: 1px solid #ccc;
+    grid-gap: 20px 0px;
+    grid-template-columns: 1.25fr 0.75fr;
+    align-items: center;
+}
+
+.tabcontent input, .tabcontent select {
+    outline: none;
+}
+
+.tabcontent input[type=checkbox] {
+    transform: scale(1.4);
+}
+
+.exit {
+    display: flex;
+    flex-direction: row-reverse;
+    margin: 20px;
+}
+
+.exit button {
+    margin: 0 10px;
+    padding: 5px 15px;
+}
+
+#translationWindow {
+    width: 95%;
+    height: 200px;
+    padding: 10px;
+    outline: 2px solid black;
+    outline-offset: -2px;
+    grid-column-start: span 2;
+    justify-self: center;
+    overflow: hidden;
+}

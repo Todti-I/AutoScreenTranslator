@@ -1,0 +1,25 @@
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+.translationBlock {
+    outline: 2px solid black;
+    outline-offset: -2px;
+    height: 100%;
+}
+
+.translationText {
+    width: fit-content;
+    padding: 10px 15px;
+    white-space: pre-line;
+}
+
+#loader {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 50vmin;
+    max-width: 100px;
+}
