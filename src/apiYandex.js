@@ -53,13 +53,12 @@ module.exports.getTranslationFromText = async (iamToken, folderId,
     return { isError: true, data: `[Yandex Translate API] (${json.code}) ${json.message}` };
 }
 
-module.exports.getTextFromImage = async (iamToken, folderId, image, rect, language) => {
-    const croppedImage = await cropImage(image, rect);
-    const base64 = croppedImage.split(',')[1];
+module.exports.getTextFromImage = async (iamToken, folderId, imgBase64, rect, language) => {
+    const croppedImgBase64 = await cropImage(imgBase64, rect);
     const options = {
         'folderId': folderId,
         'analyze_specs': [{
-            'content': base64,
+            'content': croppedImgBase64,
             'features': [{
                 'type': 'TEXT_DETECTION',
                 'text_detection_config': {
@@ -99,11 +98,9 @@ module.exports.getTextFromImage = async (iamToken, folderId, image, rect, langua
     return { isError: true, data: `[Yandex Vision API] (${json.code}) ${json.message}` };
 }
 
-async function cropImage(img, rect) {
-    const base64 = img.split(',')[1];
-
-    const image = await Jimp.read(Buffer.from(base64, 'base64'));
+async function cropImage(imgBase64, rect) {
+    const image = await Jimp.read(Buffer.from(imgBase64, 'base64'));
     image.crop(rect.left, rect.top, rect.width, rect.height);
-
-    return await image.getBase64Async(Jimp.MIME_PNG);
-};
+    const data = await image.getBase64Async(Jimp.MIME_PNG);
+    return data.split(',')[1];
+}

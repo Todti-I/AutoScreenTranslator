@@ -4,12 +4,11 @@ const { getIamToken, getTextFromImage, getTranslationFromText } = require('./api
 const { config } = require('./configManager');
 const { hotkeys } = require('./hotkeysManager');
 
-const { app, ipcMain, BrowserWindow, Menu, Tray } = require('electron');
+const { app, ipcMain, BrowserWindow, Menu, Tray, screen } = require('electron');
 const electronLocalshortcut = require('electron-localshortcut');
 const path = require('path');
 
 let translation;
-let lastScreenshot;
 
 let rectsWindow;
 let translationWindow;
@@ -33,7 +32,7 @@ function ensureWindowProvide(window, windowId = -1) {
     return window;
 };
 
-function updateTransalteWindowPosition() {
+function updateTransaltionWindowPosition() {
     const rect = config.get('extraBlockForTranslation')
         ? config.get('translationRect') : config.get('rect');
     translationWindow = ensureWindowProvide(translationWindow, 1);
@@ -43,7 +42,6 @@ function updateTransalteWindowPosition() {
         width: rect.width,
         height: rect.height
     });
-    translationWindow.setAlwaysOnTop(true, 'screen-saver');
 }
 
 function exitApp() {
@@ -59,10 +57,29 @@ function exitApp() {
     tray.destroy();
 }
 
-function openSettings() {
+function openSettingsWindow() {
+    if (ensureWindowProvide(rectsWindow)) {
+        rectsWindow.hide();
+    }
+    if (ensureWindowProvide(translationWindow)) {
+        translationWindow.hide();
+    }
     hotkeys.unbindAll();
     settingsWindow = ensureWindowProvide(settingsWindow, 2);
     settingsWindow.show();
+}
+
+function openTranslationWindow() {
+    translationWindow.setAlwaysOnTop(true, 'screen-saver');
+    translationWindow.showInactive();
+}
+
+
+function openRectsWindow() {
+    const { width, height } = screen.getPrimaryDisplay().bounds;
+    rectsWindow.setBounds({ x: 1, y: 0, width, height });
+    rectsWindow.setAlwaysOnTop(true, 'screen-saver');
+    rectsWindow.show();
 }
 
 async function createScreenshot() {
@@ -81,7 +98,6 @@ async function createScreenshot() {
     }
 
     const imgBuffer = await screenshot({ format: 'png' })
-    const data = `data:image/png;base64,${Buffer.from(imgBuffer).toString('base64')}`;
 
     if (isRectsVisible) {
         rectsWindow.show();
@@ -90,16 +106,16 @@ async function createScreenshot() {
         translationWindow.showInactive();
     }
 
-    return data;
+    return Buffer.from(imgBuffer).toString('base64');;
 }
 
 async function getTranslationFromScreenshot() {
-    const img = await createScreenshot();
-
     const token = await getIamToken(config.get('oAuthToken'));
     if (token.isError) {
         return token.data;
     }
+
+    const img = await createScreenshot();
 
     const text = await getTextFromImage(token.data, config.get('forderId'),
         img, config.get('rect'), config.get('sourceLanguage'));
@@ -115,14 +131,12 @@ async function getTranslationFromScreenshot() {
 
 function createRectsWindow() {
     const rectsWindow = new BrowserWindow({
-        fullscreen: true,
         minimizable: false,
         maximizable: false,
         resizable: false,
         show: false,
         closable: false,
         movable: false,
-        alwaysOnTop: true,
         frame: false,
         transparent: true,
         skipTaskbar: true,
@@ -132,7 +146,8 @@ function createRectsWindow() {
             enableRemoteModule: false,
             preload: path.join(__dirname, 'preload.js'),
         }
-    })
+    });
+
     rectsWindow.loadFile(
         path.join(__dirname, 'RectsWindow', 'rectsPage.html'));
 
@@ -162,7 +177,7 @@ function createTranslationWindow() {
         }
     });
 
-    translationWindow.setAlwaysOnTop(true, 'screen-saver');
+    translationWindow.setIgnoreMouseEvents(true);
 
     translationWindow.loadFile(
         path.join(__dirname, 'TranslationWindow', 'translationPage.html'));
@@ -208,10 +223,10 @@ function createTray() {
     const tray = new Tray(path.join(__dirname, 'images', 'icon.png'));
     tray.setToolTip('Auto Screen Translator');
 
-    tray.on('click', openSettings);
+    tray.on('click', openSettingsWindow);
 
     const contextMenu = Menu.buildFromTemplate([
-        { label: 'Настройки', click: openSettings },
+        { label: 'Настройки', click: openSettingsWindow },
         { label: 'Выйти', click: exitApp },
     ])
 
@@ -224,7 +239,6 @@ ipcMain.on('rects-message', (event, arg) => {
         event.reply('rects-reply', {
             rect: config.get('rect'),
             translationRect: config.get('translationRect'),
-            img: lastScreenshot,
         });
         return;
     }
@@ -247,7 +261,7 @@ ipcMain.on('rects-message', (event, arg) => {
     if (arg.translationRect) {
         config.set('translationRect', fixRect(arg.translationRect));
     }
-    updateTransalteWindowPosition();
+    updateTransaltionWindowPosition();
 });
 
 ipcMain.on('translation-message', (event, arg) => {
@@ -263,7 +277,7 @@ ipcMain.on('settings-message', (event, arg) => {
         return
     }
     config.setObject(arg);
-    updateTransalteWindowPosition();
+    updateTransaltionWindowPosition();
     translationWindow.reload();
 });
 
@@ -281,7 +295,7 @@ app.on('ready', () => {
     translationWindow = createTranslationWindow();
     tray = createTray();
 
-    hotkeys.bind('hotkeyOpenSettings', openSettings);
+    hotkeys.bind('hotkeyOpenSettings', openSettingsWindow);
 
     hotkeys.bind('hotkeyExitApp', () => {
         exitApp();
@@ -290,16 +304,16 @@ app.on('ready', () => {
     hotkeys.bind('hotkeyOpenCloseRects', async () => {
         rectsWindow = ensureWindowProvide(rectsWindow, 0);
         if (rectsWindow.isVisible()) {
+            translationWindow.setAlwaysOnTop(true, 'screen-saver');
             rectsWindow.hide();
             return;
         }
-        lastScreenshot = await createScreenshot();
         rectsWindow.webContents.send('rects-reply', {
             rect: config.get('rect'),
-            translationRect: config.get('translationRect'),
-            img: lastScreenshot,
+            translationRect: config.get('translationRect')
         });
-        rectsWindow.show();
+        translationWindow.setAlwaysOnTop(false);
+        openRectsWindow();
     });
 
     let isLoading = false;
@@ -308,20 +322,20 @@ app.on('ready', () => {
             return;
         }
         isLoading = true;
-        updateTransalteWindowPosition();
+        updateTransaltionWindowPosition();
         translationWindow.webContents.send('translation-reply', { isLoading });
-        translationWindow.showInactive();
+        openTranslationWindow();
         translation = await getTranslationFromScreenshot();
         isLoading = false;
         translationWindow.webContents.send('translation-reply', { text: translation, isLoading });
     });
 
     hotkeys.bind('hotkeyOpenCloseTranslation', () => {
-        updateTransalteWindowPosition();
+        updateTransaltionWindowPosition();
         if (translationWindow.isVisible()) {
             translationWindow.hide();
         }
-        else translationWindow.showInactive();
+        else openTranslationWindow();
     });
 
     console.log('>>> ASP launched');

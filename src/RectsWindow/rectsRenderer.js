@@ -38,7 +38,6 @@ function createCanvas() {
             else {
                 rect = Object.assign({}, currentRect);
                 window.api.send('rects-message', { rect });
-                
             }
         }
         drawRects(context);
@@ -54,7 +53,7 @@ function createCanvas() {
     const drawRect = (context, rect, color) => {
         context.beginPath();
         context.strokeStyle = color;
-        context.lineWidth = 2;
+        context.lineWidth = 3;
         context.rect(rect.left, rect.top, rect.width, rect.height);
         context.stroke();
         context.closePath();
@@ -67,15 +66,12 @@ function createCanvas() {
         if (data.translationRect) {
             translationRect = data.translationRect;
         }
-        if (data.img) {
-            img.src = data.img;
-        }
         drawRects(context);
     });
 
     return canvas;
 }
 
-const img = document.querySelector('img');
-img.after(createCanvas());
+const body = document.querySelector('body');
+body.append(createCanvas());
 window.api.send('rects-message');
