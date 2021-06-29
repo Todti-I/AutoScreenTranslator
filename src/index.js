@@ -4,7 +4,7 @@ const { getIamToken, getTextFromImage, getTranslationFromText } = require('./api
 const { config } = require('./configManager');
 const { hotkeys } = require('./hotkeysManager');
 
-const { app, globalShortcut, ipcMain, BrowserWindow, Menu, Tray } = require('electron');
+const { app, ipcMain, BrowserWindow, Menu, Tray } = require('electron');
 const electronLocalshortcut = require('electron-localshortcut');
 const path = require('path');
 
@@ -43,6 +43,7 @@ function updateTransalteWindowPosition() {
         width: rect.width,
         height: rect.height
     });
+    translationWindow.setAlwaysOnTop(true, 'screen-saver');
 }
 
 function exitApp() {
@@ -328,6 +329,6 @@ app.on('ready', () => {
 
 app.on('window-all-closed', () => {
     config.save();
-    globalShortcut.unregisterAll();
+    hotkeys.unbindAll();
     app.quit()
 });

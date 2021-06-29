@@ -23,7 +23,13 @@ const defaultConfig = {
 class Config {
     constructor() {
         try {
-            this._config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
+            const config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
+            for (let property in defaultConfig) {
+                if (!config.hasOwnProperty(property)) {
+                    config[property] = defaultConfig[property];
+                }
+            }
+            this._config = config;
         }
         catch (_) {
             this._config = defaultConfig;
