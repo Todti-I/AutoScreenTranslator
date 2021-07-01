@@ -212,6 +212,8 @@ function createSettingsWindow() {
     settingsWindow.loadFile(
         path.join(__dirname, 'SettingsWindow', 'settingsPage.html'));
 
+    settingsWindow.on('close', () => hotkeys.updateAllBinds());
+
     electronLocalshortcut.register(settingsWindow, 'F12', () => {
         settingsWindow.webContents.openDevTools();
     });
@@ -281,10 +283,7 @@ ipcMain.on('settings-message', (event, arg) => {
     translationWindow.reload();
 });
 
-ipcMain.on('settings-close', () => {
-    settingsWindow.close();
-    hotkeys.updateAllBinds();
-});
+ipcMain.on('settings-close', () => settingsWindow.close());
 
 app.allowRendererProcessReuse = true;
 
